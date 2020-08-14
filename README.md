@@ -7,9 +7,7 @@ A starter project for running a three node Kafka cluster under Docker. The Docke
 * [ZooNavigator](https://zoonavigator.elkozmon.com/en/stable/index.html) - A UI for the ZooKeeper cluster
 * Three [Kafka](https://kafka.apache.org) brokers using [this image](https://github.com/wurstmeister/kafka-docker)
 * [Kafka Manager](https://hub.docker.com/r/hlebalbau/kafka-manager) - An open source UI by Yahoo for Kafka.
-* [Kafka Topics UI](https://hub.docker.com/r/landoop/kafka-topics-ui) - An open source UI for examining messages
-* [Kafka Connect UI](https://github.com/lensesio/kafka-connect-ui) - A UI for managing Kafka Connect clusters.
-* A container, named kafka-tools, for executing commands if you don't want to install the tools locally
+* [Kafka Topics UI](https://github.com/lensesio/kafka-topics-ui) - An open source UI for examining messages
 * [Kafka Rest Proxy](https://docs.confluent.io/current/kafka-rest/index.html) - A RESTful interface to a Kafka cluster,
   making it easy to produce and consume messages, view the state of the cluster, and perform administrative actions
   without using the native Kafka protocol or clients.
@@ -42,18 +40,16 @@ Once the cluster is up, which will be indicated by the last line of the console 
 kafka-manager_1  | 2020-08-02 15:13:14,912 - [INFO] k.m.a.KafkaManagerActor - Updating internal state...
 ```
 
-we can now setup the cluster in the Kafka Admin tool. [Navigate to the UI](http://localhost:9000/addCluster) and at a minimum fill out the name
-and the ZooKeeper hosts with `zk1:2181,zk2:2182,zk3:2183`
+we can now setup the cluster in the Kafka Admin tool. [Navigate to the UI](http://localhost:9000/addCluster) and at a minimum fill out the name and the ZooKeeper hosts with `zk1:2181,zk2:2182,zk3:2183`
 
 ### ZooKeeper Setup
 
-[Navigate to the UI](http://localhost:9001/) and at a minimum fill out the name
-and the ZooKeeper hosts with `zk1:2181,zk2:2182,zk3:2183`
+[Navigate to the UI](http://localhost:9001/) and specify ZooKeeper hosts with `zk1:2181,zk2:2182,zk3:2183`
 
 
 ### Kafka Topics UI
 
-There's not setup required. [Start browsing data](http://localhost::9002/) from Kafka Topics.
+There's no setup required. [Start browsing data](http://localhost::9002/) for the topics.
 
 
 ## Common Tasks
@@ -61,23 +57,44 @@ There's not setup required. [Start browsing data](http://localhost::9002/) from 
 For common tasks with Kafka you have one of two options,
 
 * Perform the task through the [Kafka Admin UI](http://localhost:9000/)
-* Perform the task in the kafka-tools container, which you can access by running `docker exec -it kafka-tools bash`
+* Perform the task on the command line through a docker container.
 
-
-### Create a Topic
-[Navigate to the UI](http://localhost:9000) and use the UI or execute the following in the kafka-tools container,
+If you want to perform commands via the commandline is helpful to have this alias in your shell profile.
 
 ```
-kafka-topics.sh --create --bootstrap-server broker-1:19092,broker-2:19093,broker-3:19094 --replication-factor 3 --partitions 9 --topic messages
+alias kafkad='docker run --rm -it --network kafka-net wurstmeister/kafka:latest'
+```
+
+Name it what you like I prefer to add the `d` on the end to indicate the command is being run through docker.
+
+### Create a Topic
+[Navigate to the UI](http://localhost:9000) and create the topic there or execute the following assuming the alias above,
+
+```
+kafkad kafka-topics.sh --create --bootstrap-server broker-1:19092,broker-2:19093,broker-3:19094 --replication-factor 3 --partitions 9 --topic messages
+```
+
+To make life a little easier let's add another alias
+
+```
+alias kafkacreatetopic='f() { kafkad kafka-topics.sh --create --bootstrap-server broker-1:19092,broker-2:19093,broker-3:19094 --partitions $1 --replication-factor $2 --topic $3; unset -f f; }; f'
+```
+NOTE: Notice it takes three parameters.
+
+Of course we'll want to delete topics so here's an alias for that too,
+
+```
+alias kafkadeletetopic='f() { kafkad kafka-topics.sh --delete --bootstrap-server broker-1:19092,broker-2:19093,broker-3:19094 --topic $1; unset -f f; }; f'
 ```
 
 ### Produce Messages
 
-In the kafka-tools container run,
+Assuming you set up the `kafkad` alias above run,
 
 ```
-kafka-console-producer.sh --broker-list broker-1:19092,broker-2:19093,broker-3:19094 --topic messages --property "parse.key=true" --property "key.separator=:"
+kafkad kafka-console-producer.sh --broker-list broker-1:19092,broker-2:19093,broker-3:19094 --topic messages --property "parse.key=true" --property "key.separator=:"
 ```
+
 At the prompt enter each line,
 
 ```
@@ -89,9 +106,10 @@ At the prompt enter each line,
 
 ### Consume Messages
 
-In the kafka-tools container run,
+Assuming you set up the `kafkad` alias above run,
+
 ```
-kafka-console-consumer.sh --bootstrap-server broker-1:19092,broker-2:19093,broker-3:19094 --from-beginning --topic messages --property "print.key=true"
+kafkad kafka-console-consumer.sh --bootstrap-server broker-1:19092,broker-2:19093,broker-3:19094 --from-beginning --topic messages --property "print.key=true"
 ```
 
 If you entered the messages in the previous section you should see those messages in the console.

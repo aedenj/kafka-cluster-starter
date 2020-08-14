@@ -125,20 +125,6 @@ services:
     networks:
       - kafka-net
 
-
-  kafka-tools:
-    image: wurstmeister/kafka:latest
-    hostname: "kafka-tools"
-    container_name: "kafka-tools"
-    command: ["tail", "-f", "/dev/null"]
-    depends_on:
-      - broker-1
-      - broker-2
-      - broker-3
-    networks:
-      - kafka-net
-
-
   zoonavigator:
     image: elkozmon/zoonavigator:latest
     ports:
