@@ -62,7 +62,7 @@ For common tasks with Kafka you have one of two options,
 If you want to perform commands via the commandline is helpful to have this alias in your shell profile.
 
 ```
-alias kafkad='docker run --rm -it --network kafka-net wurstmeister/kafka:latest'
+alias kafkad='docker run --rm -i --network kafka-net wurstmeister/kafka:latest'
 ```
 
 Name it what you like I prefer to add the `d` on the end to indicate the command is being run through docker.
@@ -79,6 +79,7 @@ To make life a little easier let's add another alias
 ```
 alias kafkacreatetopic='f() { kafkad kafka-topics.sh --create --bootstrap-server broker-1:19092,broker-2:19093,broker-3:19094 --partitions $1 --replication-factor $2 --topic $3; unset -f f; }; f'
 ```
+
 NOTE: Notice it takes three parameters.
 
 Of course we'll want to delete topics so here's an alias for that too,
