@@ -27,7 +27,10 @@ This setup allows you to experiment with a number of scenarios you may wish to t
 
 ## Up & Running
 
-Get started by running,
+With Docker installed, we will need a an external docker network to run the containers on.
+Run `docker network create kafak-net`.
+
+Now let's clone the repo and fire up our cluster,
 
 ```
 git clone git@github.com:aedenj/kafka-cluster-starter.git ~/projects/my-project
@@ -35,6 +38,7 @@ cd ~/projects/my-project;docker-compose up
 ```
 
 ### Kafka Admin Setup
+
 Once the cluster is up, which will be indicated by the last line of the console output being,
 ```
 kafka-manager_1  | 2020-08-02 15:13:14,912 - [INFO] k.m.a.KafkaManagerActor - Updating internal state...
@@ -65,7 +69,7 @@ If you want to perform commands via the commandline is helpful to have this alia
 alias kafkad='docker run --rm -i --network kafka-net wurstmeister/kafka:latest'
 ```
 
-Name it what you like I prefer to add the `d` on the end to indicate the command is being run through docker.
+Name the alias what you like. I prefer to add the `d` on the end to indicate the command is being run through docker.
 
 ### Create a Topic
 [Navigate to the UI](http://localhost:9000) and create the topic there or execute the following assuming the alias above,
@@ -77,15 +81,13 @@ kafkad kafka-topics.sh --create --bootstrap-server broker-1:19092,broker-2:19093
 To make life a little easier let's add another alias
 
 ```
-alias kafkacreatetopic='f() { kafkad kafka-topics.sh --create --bootstrap-server broker-1:19092,broker-2:19093,broker-3:19094 --partitions $1 --replication-factor $2 --topic $3; unset -f f; }; f'
+alias kafkacreatetopic='f() { kafkad kafka-topics.sh --create --bootstrap-server $1 --partitions $2 --replication-factor $3 --topic $4; unset -f f; }; f'
 ```
-
-NOTE: Notice it takes three parameters.
 
 Of course we'll want to delete topics so here's an alias for that too,
 
 ```
-alias kafkadeletetopic='f() { kafkad kafka-topics.sh --delete --bootstrap-server broker-1:19092,broker-2:19093,broker-3:19094 --topic $1; unset -f f; }; f'
+alias kafkadeletetopic='f() { kafkad kafka-topics.sh --delete --bootstrap-server $1 --topic $2; unset -f f; }; f'
 ```
 
 ### Produce Messages
